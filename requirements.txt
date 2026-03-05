@@ -3,3 +3,8 @@ uvicorn
 torch
 transformers
 sentencepiece
+peft
+boto3
+python-dotenv
+bitsandbytes
+accelerate
