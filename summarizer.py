@@ -2,31 +2,40 @@ import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
 
-def run_summarization(model_path, text):
+def run_summarization(
+    tokenizer, model, text, max_length_ratio=0.2, max_new_tokens=400, device="cpu"
+):
 
-    tokenizer = AutoTokenizer.from_pretrained(model_path)
-    model = AutoModelForCausalLM.from_pretrained(
-        model_path,
-        torch_dtype=torch.float16,
-        device_map="auto"
-    )
+    input_ids = tokenizer(text)["input_ids"]
+    input_token_count = len(input_ids)
 
-    prompt = f"""
-Summarize the following Khmer text:
+    target_max_tokens = int(input_token_count * max_length_ratio)
+    target_max_tokens = min(target_max_tokens, max_new_tokens)
 
-{text}
+    prompt = f"""<|im_start|>user
+    សូមសង្ខេបអត្ថបទខាងក្រោមជាអត្ថបទខ្លី និងច្បាស់លាស់។
+    {text}
+    <|im_end|>
+    <|im_start|>assistant
+    """
 
-Summary:
-"""
+    inputs = tokenizer(prompt, return_tensors="pt", truncation=True).to(device)
 
-    inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
+    with torch.no_grad():
+        outputs = model.generate(
+            **inputs,
+            max_new_tokens=target_max_tokens,
+            temperature=0.3,
+            top_p=0.9,
+            top_k=40,
+            do_sample=True,
+            eos_token_id=tokenizer.eos_token_id,
+            pad_token_id=tokenizer.eos_token_id,
+        )
 
-    output = model.generate(
-        **inputs,
-        max_new_tokens=300,
-        temperature=0.3
-    )
+    # 🔥 Remove prompt tokens and decode only generated text
+    generated_tokens = outputs[0][inputs["input_ids"].shape[1] :]
 
-    decoded = tokenizer.decode(output[0], skip_special_tokens=True)
+    summary = tokenizer.decode(generated_tokens, skip_special_tokens=True).strip()
 
-    return decoded.split("Summary:")[-1].strip()
+    return summary

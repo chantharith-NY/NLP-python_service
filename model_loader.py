@@ -1,36 +1,21 @@
-import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
+import torch
 
-spell_model = None
-spell_tokenizer = None
-
-summary_model = None
-summary_tokenizer = None
+loaded_models = {}
 
 
-def load_models():
+def load_model(model_path, device="cpu"):
+    if model_path not in loaded_models:
+        print(f"Loading model: {model_path}")
 
-    global spell_model, spell_tokenizer
-    global summary_model, summary_tokenizer
+        tokenizer = AutoTokenizer.from_pretrained(model_path, trust_remote_code=True)
 
-    # SPELL MODEL
-    spell_path = "models/khmer_spell_model"
+        model = AutoModelForCausalLM.from_pretrained(
+            model_path, dtype=torch.float16, device_map=device, trust_remote_code=True
+        )
 
-    spell_tokenizer = AutoTokenizer.from_pretrained(spell_path)
-    spell_model = AutoModelForCausalLM.from_pretrained(
-        spell_path,
-        torch_dtype=torch.float16,
-        device_map="auto"
-    )
+        model.eval()
 
-    # SUMMARY MODEL
-    summary_path = "models/khmer_summary_model"
+        loaded_models[model_path] = {"tokenizer": tokenizer, "model": model}
 
-    summary_tokenizer = AutoTokenizer.from_pretrained(summary_path)
-    summary_model = AutoModelForCausalLM.from_pretrained(
-        summary_path,
-        torch_dtype=torch.float16,
-        device_map="auto"
-    )
-
-    print("✅ Models loaded")
+    return loaded_models[model_path]["tokenizer"], loaded_models[model_path]["model"]

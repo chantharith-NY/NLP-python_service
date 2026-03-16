@@ -1,32 +1,36 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 
-from spell_checker import run_spell_check
+from spell_checker import correct_khmer
 from summarizer import run_summarization
+from model_loader import load_model
 
 app = FastAPI()
 
 
-class NLPRequest(BaseModel):
+class SpellRequest(BaseModel):
+    model_path: str
+    text: str
+
+
+@app.post("/spell-check")
+def spell_check(req: SpellRequest):
+
+    result = correct_khmer(req.model_path, req.text)
+
+    return {"corrected_text": result}
+
+
+class SummarizeRequest(BaseModel):
     text: str
     model_path: str
 
 
-@app.post("/spell-check")
-def spell_check(req: NLPRequest):
-
-    result = run_spell_check(req.model_path, req.text)
-
-    return {
-        "corrected_text": result
-    }
-
-
 @app.post("/summarize")
-def summarize(req: NLPRequest):
+def summarize(req: SummarizeRequest):
 
-    result = run_summarization(req.model_path, req.text)
+    tokenizer, model = load_model(req.model_path)
 
-    return {
-        "summary": result
-    }
+    summary = run_summarization(tokenizer, model, req.text)
+
+    return {"summary": summary}

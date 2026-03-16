@@ -1,32 +1,42 @@
 import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from model_loader import load_model
+
+SYSTEM_MSG = "You are a Khmer spell corrector. Only output the corrected sentence."
 
 
-def run_spell_check(model_path, text):
+def correct_khmer(model_path: str, sentence: str):
 
-    tokenizer = AutoTokenizer.from_pretrained(model_path)
-    model = AutoModelForCausalLM.from_pretrained(
-        model_path,
-        torch_dtype=torch.float16,
-        device_map="auto"
+    tokenizer, model = load_model(model_path)
+
+    sentence = sentence.strip()
+
+    if not sentence:
+        return ""
+
+    messages = [
+        {"role": "system", "content": SYSTEM_MSG},
+        {"role": "user", "content": f"Correct Khmer spelling:\n{sentence}"},
+    ]
+
+    prompt = tokenizer.apply_chat_template(
+        messages, tokenize=False, add_generation_prompt=True
     )
 
-    prompt = f"""
-You are a Khmer spell corrector.
+    inputs = tokenizer(prompt, return_tensors="pt").to("cpu")
 
-Incorrect: {text}
+    input_len = inputs["input_ids"].shape[1]
 
-Correct:
-"""
+    with torch.no_grad():
+        output = model.generate(
+            **inputs,
+            max_new_tokens=64,
+            temperature=0.0,
+            do_sample=False,
+            repetition_penalty=1.05,
+        )
 
-    inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
+    gen_ids = output[0][input_len:]
 
-    output = model.generate(
-        **inputs,
-        max_new_tokens=200,
-        temperature=0.2
-    )
+    text = tokenizer.decode(gen_ids, skip_special_tokens=True).strip()
 
-    decoded = tokenizer.decode(output[0], skip_special_tokens=True)
-
-    return decoded.split("Correct:")[-1].strip()
+    return text
