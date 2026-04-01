@@ -37,7 +37,7 @@ project/
 ### 1. Install PyTorch (GPU version)
 
 ```bash
-pip install torch==2.10.0 torchvision==0.25.0 torchaudio==2.10.0 \
+pip install torch==2.10.0 torchvision==0.25.0 torchaudio==2.10.0
 --index-url https://download.pytorch.org/whl/cu128
 ```
 
