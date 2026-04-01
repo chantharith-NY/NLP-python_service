@@ -1,9 +1,9 @@
 import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer
+# from transformers import AutoModelForCausalLM, AutoTokenizer
 
 
 def run_summarization(
-    tokenizer, model, text, max_length_ratio=0.2, max_new_tokens=400, device="cpu"
+    tokenizer, model, text, max_length_ratio=0.3, max_new_tokens=1024, device="cuda"
 ):
 
     input_ids = tokenizer(text)["input_ids"]
@@ -25,9 +25,9 @@ def run_summarization(
         outputs = model.generate(
             **inputs,
             max_new_tokens=target_max_tokens,
-            temperature=0.3,
+            temperature=0.7,
             top_p=0.9,
-            top_k=40,
+            top_k=20,
             do_sample=True,
             eos_token_id=tokenizer.eos_token_id,
             pad_token_id=tokenizer.eos_token_id,

@@ -1,82 +1,49 @@
-# Khmer NLP Python Service (v1.0.2)
+# 🚀 Khmer NLP Python Service
 
-This service provides **Khmer Text Summarization** and **Spell Checking** using
-pretrained and fine-tuned models hosted on **Hugging Face**.
+This is a FastAPI-based Python service for:
 
-It is designed to work as a **microservice** and is consumed by a **Laravel backend**
-via HTTP API calls.
-
----
-
-## 📌 Features
-
-- Khmer text summarization
-- Khmer spell checking (text correction / rewriting)
-- Hugging Face model integration
-- FastAPI-based REST API
-- Models loaded once and cached in memory for performance
-- Easy to extend with new models
+* ✅ Khmer Spell Checking
+* ✅ Text Summarization
+* ✅ AI Model Inference (Hugging Face Transformers)
 
 ---
 
-## 🧠 Models Used
-
-| Model Key | Model Name              | Hugging Face Repo                        | Model Type |
-| --------- | ----------------------- | ---------------------------------------- | ---------- |
-| model1    | Khmer MBart LoRA        | `sedtha/mBart-50-large_LoRa_kh_sumerize` | mBART      |
-| model2    | Khmer mT5 Summarization | `angkor96/khmer-mT5-news-summarization`  | mT5        |
-
-Both models are used for:
-
-- Text Summarization
-- Spell Checking (treated as text rewriting)
-
----
-
-## 🏗️ Project Structure
+## 📦 Project Structure
 
 ```
-python_service/
-├── app.py                # FastAPI entry point
-├── model_loader.py       # Hugging Face model loader
-├── summarizer.py         # Summarization logic
-├── spell_checker.py      # Spell checking logic
+project/
+│
+├── main.py # FastAPI entry point
 ├── requirements.txt
-└── README.md
+└── app/
+ ├── __init__.py
+ ├── model_loader.py
+ ├── spell_checker.py
+ └── summarizer.py
 ```
 
 ---
 
-## 🐍 Python Version
+## ⚙️ Requirements
 
-⚠️ **Required Python Version**
+* Python 3.10+
+* GPU (recommended for faster inference)
+* CUDA 12.8 (for GPU support)
 
-```
-Python 3.9 or 3.10 (recommended)
-```
+---
 
-> Python 3.11 is **not recommended** due to potential incompatibilities with
-> PyTorch and Transformers.
+## 🔧 Installation
 
-Check your Python version:
+### 1. Install PyTorch (GPU version)
 
 ```bash
-python --version
+pip install torch==2.10.0 torchvision==0.25.0 torchaudio==2.10.0 \
+--index-url https://download.pytorch.org/whl/cu128
 ```
 
 ---
 
-## 📦 Dependencies
-
-Main libraries:
-
-- `fastapi`
-- `uvicorn`
-- `torch`
-- `transformers`
-- `sentencepiece`
-
-Install all dependencies:
+### 2. Install project dependencies
 
 ```bash
 pip install -r requirements.txt
@@ -86,107 +53,107 @@ pip install -r requirements.txt
 
 ## ▶️ Running the Service
 
-Start the FastAPI server:
+Start the FastAPI server using:
 
 ```bash
-uvicorn app:app --host 0.0.0.0 --port 8001
-```
-
-When successful, you will see:
-
-```
-Uvicorn running on http://0.0.0.0:8001
-Models loaded successfully
+uvicorn main:app --reload --port 8001
 ```
 
 ---
 
-## 🔌 API Endpoints
+## 🌐 API Endpoints
 
-### 1️⃣ Text Summarization
-
-**POST** `/summarize`
-
-Request:
-
-```json
-{
-  "text": "Khmer input text here",
-  "model_key": "model1"
-}
-```
-
-Response:
-
-```json
-{
-  "output": "Summarized Khmer text",
-  "execution_time_ms": 240
-}
-```
-
----
-
-### 2️⃣ Spell Checking
+### 1. Spell Check
 
 **POST** `/spell-check`
 
-Request:
+#### Request Body:
 
 ```json
 {
-  "text": "Khmer text with error",
-  "model_key": "model2"
+ "model_path": "your-model-path",
+ "text": "input Khmer text"
 }
 ```
 
-Response:
+#### Response:
 
 ```json
 {
-  "output": "Corrected Khmer text",
-  "execution_time_ms": 180
+ "corrected_text": "corrected Khmer text"
 }
 ```
 
 ---
 
-## 🔗 Laravel Integration
+### 2. Summarization
 
-The Laravel backend:
+**POST** `/summarize`
 
-1. Reads `model_key` from the database
-2. Sends request to this service
-3. Receives output and execution time
-4. Stores result in PostgreSQL
+#### Request Body:
 
-This service contains **no database logic** and focuses only on AI inference.
+```json
+{
+ "model_path": "your-model-path",
+ "text": "long Khmer text"
+}
+```
 
----
+#### Response:
 
-## ⚠️ Notes & Best Practices
-
-- Models are loaded **once at startup** to avoid repeated loading
-- GPU acceleration is supported automatically if available
-- For production, consider:
-
-  - Running behind Nginx
-  - Using Docker
-  - Adding request timeouts
+```json
+{
+ "summary": "short summarized text"
+}
+```
 
 ---
 
-## 🚀 Future Improvements
+## 🧠 Model Loading
 
-- Add grammar checking
-- Add batch inference
-- Add GPU/CPU selection
-- Add model warm-up endpoint
-- Add logging and monitoring
+* Models are loaded dynamically using Hugging Face
+* Cached in memory to improve performance
+* Supports multiple model paths
 
 ---
 
-## 📄 License
+## ⚠️ Notes
 
-This project is for **research and educational purposes**.
-Model licenses follow their respective Hugging Face repositories.
+* Ensure your GPU supports CUDA 12.8 for best performance
+* If no GPU is available, update code to use CPU:
+
+ ```python
+ device = "cuda" if torch.cuda.is_available() else "cpu"
+ ```
+* First request may take time due to model loading
+
+---
+
+## 🔗 Development Tips
+
+* Use `--reload` only for development
+* For production, consider:
+
+ * Docker
+ * Gunicorn + Uvicorn workers
+ * Model preloading
+
+---
+
+## 👨‍💻 Author
+
+This service was developed by **Chantharith Ny**.
+
+* Role: Frontend, Backend & API Developer
+* Responsibility: Building the website using ViteJS and backend using Laravel API and FastAPI service, integrating and serving AI models
+
+---
+
+## 📬 Contact
+
+* 📧 Email: [chantharith77@gmail.com](mailto:chantharith77@gmail.com)
+* 💻 GitHub: https://github.com/chantharith-NY
+
+Feel free to reach out for collaboration, questions, or improvements.
+
+---

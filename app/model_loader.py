@@ -4,14 +4,14 @@ import torch
 loaded_models = {}
 
 
-def load_model(model_path, device="cpu"):
+def load_model(model_path, device="cuda"):
     if model_path not in loaded_models:
         print(f"Loading model: {model_path}")
 
         tokenizer = AutoTokenizer.from_pretrained(model_path, trust_remote_code=True)
 
         model = AutoModelForCausalLM.from_pretrained(
-            model_path, dtype=torch.float16, device_map=device, trust_remote_code=True
+            model_path, dtype=torch.float16, device_map="auto", trust_remote_code=True
         )
 
         model.eval()
