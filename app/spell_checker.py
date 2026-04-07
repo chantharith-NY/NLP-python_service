@@ -1,18 +1,13 @@
 import torch
 from .model_loader import load_model
 
-# ==============================
-# Inference function
-# ==============================
-SYSTEM_MSG = "You are a Khmer spell corrector. Only output the corrected sentence. No explanations."
+SYSTEM_MSG = "You are a Khmer spell corrector. Only output the corrected sentence."
 
 
-def correct_khmer(model_path: str, sentence: str, device="cuda"):
-
-    tokenizer, model = load_model(model_path, device=device)
+def correct_khmer(model_path: str, sentence: str):
+    tokenizer, model, _ = load_model(model_path)
 
     sentence = sentence.strip()
-
     if not sentence:
         return ""
 
@@ -22,10 +17,13 @@ def correct_khmer(model_path: str, sentence: str, device="cuda"):
     ]
 
     prompt = tokenizer.apply_chat_template(
-        messages, tokenize=False, add_generation_prompt=True
+        messages,
+        tokenize=False,
+        add_generation_prompt=True,
     )
 
-    inputs = tokenizer(prompt, return_tensors="pt").to(device)
+    inputs = tokenizer(prompt, return_tensors="pt")
+    inputs = {k: v.to(model.device) for k, v in inputs.items()}
 
     input_len = inputs["input_ids"].shape[1]
 
