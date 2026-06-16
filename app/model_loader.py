@@ -13,6 +13,16 @@ loaded_models = {}
 
 
 def load_model(model_path, device="cuda"):
+    # DEBUG
+    print("=" * 50)
+    print(f"Received model_path: {model_path}")
+    print(f"Exists: {os.path.exists(model_path)}")
+    print(f"Is Dir: {os.path.isdir(model_path)}")
+    print("=" * 50)
+    
+    if not os.path.exists(model_path):
+        raise FileNotFoundError(f"❌ Model path does not exist: {model_path}")
+    
     if not torch.cuda.is_available():
         raise RuntimeError("❌ CUDA is not available. Cannot run on GPU only.")
 
@@ -56,7 +66,7 @@ def load_model(model_path, device="cuda"):
             )
             model_type = "causal"
 
-    model = model.to("cuda")
+    model = model.to(device)
     model.eval()
 
     loaded_models[model_path] = {

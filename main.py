@@ -5,6 +5,12 @@ from app import correct_khmer, load_model, run_summarization
 
 app = FastAPI()
 
+# ---------------- HEALTH CHECK ----------------
+
+@app.get("/health")
+def health_check():
+    return {"status": "healthy"}
+
 
 # ---------------- SPELL CHECK ----------------
 class SpellRequest(BaseModel):
